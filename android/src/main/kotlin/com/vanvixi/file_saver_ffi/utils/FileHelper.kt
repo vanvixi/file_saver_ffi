@@ -1,39 +1,11 @@
 package com.vanvixi.file_saver_ffi.utils
 
-import com.vanvixi.file_saver_ffi.models.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.OutputStream
 
 object FileHelper {
-    /**
-     * Determines file type based on extension and MIME type
-     ***/
-    fun getFileType(
-        ext: String?,
-        mimeType: String?
-    ): FileType {
-        val normalizedExt = ext?.lowercase()?.replace(".", "")?.trim()
-        val safeMime = mimeType?.lowercase()
-
-        fun <T : FileType> find(
-            values: Array<T>
-        ): T? = values.firstOrNull {
-            safeMime != null && it.mimeType == safeMime ||
-                    normalizedExt != null && it.ext == normalizedExt
-        }
-
-        find(ImageType.entries.toTypedArray())?.let { return it }
-        find(VideoType.entries.toTypedArray())?.let { return it }
-        find(AudioType.entries.toTypedArray())?.let { return it }
-
-        return CustomFileType(
-            ext = normalizedExt ?: "bin",
-            mimeType = safeMime ?: "application/octet-stream"
-        )
-    }
-
     /**
      * Ensures directory exists, creating it if necessary
      *

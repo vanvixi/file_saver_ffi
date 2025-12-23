@@ -34,7 +34,7 @@ class FileSaver(context: Context) {
         conflictMode: Int,
     ): SaveResult = withContext(Dispatchers.IO) {
         try {
-            val fileType = FileHelper.getFileType(extension, mimeType)
+            val fileType = FileType(extension, mimeType)
             val conflictResolution = ConflictResolution.fromInt(conflictMode)
 
             if (fileType.isImage) {

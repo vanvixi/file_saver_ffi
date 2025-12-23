@@ -3,10 +3,7 @@ package com.vanvixi.file_saver_ffi.utils
 import android.media.MediaCodecList
 import android.os.Build
 import com.vanvixi.file_saver_ffi.exception.UnsupportedFormatException
-import com.vanvixi.file_saver_ffi.models.AudioType
 import com.vanvixi.file_saver_ffi.models.FileType
-import com.vanvixi.file_saver_ffi.models.ImageType
-import com.vanvixi.file_saver_ffi.models.VideoType
 
 object FormatValidator {
     /**
@@ -22,17 +19,13 @@ object FormatValidator {
      *
      */
     fun validateImageFormat(imageType: FileType) {
+        val ext = imageType.ext.lowercase()
         // Always supported formats (no codec check needed)
-        val alwaysSupported = setOf(
-            ImageType.PNG,
-            ImageType.JPG,
-            ImageType.JPEG,
-            ImageType.BMP,
-        )
-        if (imageType in alwaysSupported) return
+        val alwaysSupported = setOf("png", "jpeg", "gif", "bmp")
+        if (ext in alwaysSupported) return
 
         // HEIC/HEIF - Android 10+ required + codec check
-        if (imageType == ImageType.HEIC || imageType == ImageType.HEIF) {
+        if (ext == "heic" || ext == "heif") {
             // Check Android version first
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
                 throw UnsupportedFormatException(
@@ -43,7 +36,7 @@ object FormatValidator {
             }
 
             // Check codec availability
-            if (!isCodecAvailable(ImageType.HEIC.mimeType) && !isCodecAvailable(ImageType.HEIF.mimeType)) {
+            if (!isCodecAvailable("image/heic") && !isCodecAvailable("image/heif")) {
                 throw UnsupportedFormatException(
                     format = imageType.ext.uppercase(),
                     message = "HEIC/HEIF codec not available on this device"
@@ -53,7 +46,7 @@ object FormatValidator {
         }
 
         // WebP - Codec check
-        if (imageType == ImageType.WEBP && !isCodecAvailable(ImageType.WEBP.mimeType)) {
+        if (ext == "webp" && !isCodecAvailable("image/webp")) {
             throw UnsupportedFormatException(
                 format = imageType.ext.uppercase(),
                 message = "WebP codec not available on this device"
@@ -78,9 +71,10 @@ object FormatValidator {
      * @throws UnsupportedFormatException if format is not supported on this device
      */
     fun validateVideoFormat(videoType: FileType) {
+        val ext = videoType.ext.lowercase()
         // Common formats (usually supported on all Android devices)
-        val commonFormats = setOf(VideoType.MP4, VideoType.THREE_GP, VideoType.WEBM)
-        if (videoType in commonFormats) return
+        val commonFormats = setOf("mp4", "3gp", "webm")
+        if (ext in commonFormats) return
 
         if (!isCodecAvailable(videoType.mimeType)) {
             throw UnsupportedFormatException(
@@ -106,14 +100,10 @@ object FormatValidator {
      * @throws UnsupportedFormatException if format is not supported on this device
      */
     fun validateAudioFormat(audioType: FileType) {
+        val ext = audioType.ext.lowercase()
         // Common formats (usually supported on all Android devices)
-        val commonFormats = setOf(
-            AudioType.MP3,
-            AudioType.AAC,     // AAC-LC only
-            AudioType.WAV,
-            AudioType.AMR
-        )
-        if (audioType in commonFormats) return
+        val commonFormats = setOf("mp3", "aac", "wav", "amr")
+        if (ext in commonFormats) return
 
         if (!isCodecAvailable(audioType.mimeType)) {
             throw UnsupportedFormatException(
