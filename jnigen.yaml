@@ -1,0 +1,19 @@
+# JNI bindings configuration for Android
+# Run with `cd android && ./gradlew assembleRelease && cd .. && fvm dart run jnigen --config jnigen.yaml`.
+output:
+  dart:
+    path: lib/src/platforms/android/bindings.g.dart
+    structure: single_file
+
+source_path:
+  - android/src/main/kotlin/com/vanvixi/file_saver_ffi
+
+classes:
+  # Main saver classes
+  - 'com.vanvixi.file_saver_ffi.FileSaver'
+
+  # Data classes / models
+  - 'com.vanvixi.file_saver_ffi.models.SaveResult'
+
+class_path:
+  - android/build/tmp/kotlin-classes/release
