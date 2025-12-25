@@ -352,3 +352,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 * User-Selected Location Android (SAF), iOS (Document Picker)
 * Custom Path Support
 * Progress Tracking
+* MacOS Support
+* Windows Support
+* Web Support
