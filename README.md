@@ -31,7 +31,7 @@ If you want to say thank you, star us on GitHub or like us on pub.dev.
 | Platform    | Minimum Version        | Notes                               |
 |-------------|------------------------|-------------------------------------|
 | **Android** | API 21+ (Android 5.0+) | Scoped storage for Android 10+      |
-| **iOS**     | 14.0+                  | Photos framework with album support |
+| **iOS**     | 13.0+                  | Photos framework with album support |
 
 ## Setup
 
