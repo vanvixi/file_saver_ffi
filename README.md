@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="cover" src="https://github.com/user-attachments/assets/e6fdc6d2-abcd-49c2-9537-ec960e4cf082" />
+  <img alt="cover" src="https://raw.githubusercontent.com/vanvixi/file_saver_ffi.flutter/main/screenshots/cover.png" />
 </p>
 
 ## File Saver FFI
