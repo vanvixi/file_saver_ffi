@@ -56,8 +56,8 @@ class FileSaver {
   /// ```
   Future<Uri> saveBytes({
     required Uint8List bytes,
-    required String fileName,
     required FileType fileType,
+    required String fileName,
     String? subDir,
     ConflictResolution conflictResolution = ConflictResolution.autoRename,
   }) async {
