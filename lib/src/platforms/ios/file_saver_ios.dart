@@ -10,19 +10,38 @@ import '../../models/file_type.dart';
 import '../../platform_interface/file_saver_platform.dart';
 import 'bindings.g.dart';
 
-class FileSaverIos extends FileSaverPlatform {
+class FileSaverIos extends FileSaverPlatform implements Finalizable {
   FileSaverIos() {
     final dylib = DynamicLibrary.process();
     _bindings = FileSaverFfiBindings(dylib);
     _saverInstance = _bindings.file_saver_init();
+
+    if (_saverInstance.address != 0) {
+      _finalizer.attach(this, _saverInstance.cast());
+    }
   }
 
   late final FileSaverFfiBindings _bindings;
   late final Pointer<Void> _saverInstance;
 
+  static final int _disposeAddress =
+      DynamicLibrary.process()
+          .lookup<NativeFunction<Void Function(Pointer<Void>)>>(
+            'file_saver_dispose',
+          )
+          .address;
+
+  static final Pointer<NativeFinalizerFunction> _nativeFinalizerPtr =
+      Pointer.fromAddress(_disposeAddress);
+
+  static final _finalizer = NativeFinalizer(_nativeFinalizerPtr);
+
   @override
   void dispose() {
-    _bindings.file_saver_dispose(_saverInstance);
+    if (_saverInstance.address != 0) {
+      _bindings.file_saver_dispose(_saverInstance);
+      _finalizer.detach(this);
+    }
   }
 
   @override
@@ -37,63 +56,64 @@ class FileSaverIos extends FileSaverPlatform {
 
     final completer = Completer<Uri>();
 
-    void onResult(Pointer<FSaveResult> resultPtr) {
-      try {
-        final result = _convertToUriOrThrow(resultPtr.ref);
-        _bindings.file_saver_free_result(resultPtr);
-        completer.complete(result);
-      } catch (e) {
-        _bindings.file_saver_free_result(resultPtr);
-        completer.completeError(e);
+    return using((Arena arena) {
+      void onResult(Pointer<FSaveResult> resultPtr) {
+        try {
+          final result = _convertToUriOrThrow(resultPtr.ref);
+          _bindings.file_saver_free_result(resultPtr);
+          completer.complete(result);
+        } catch (e) {
+          _bindings.file_saver_free_result(resultPtr);
+          completer.completeError(e);
+        }
       }
-    }
 
-    final callback =
-        NativeCallable<Void Function(Pointer<FSaveResult>)>.listener(onResult);
+      final callback =
+          NativeCallable<Void Function(Pointer<FSaveResult>)>.listener(
+            onResult,
+          );
 
-    final dataPointer = malloc.allocate<Uint8>(fileBytes.length);
-    final dataList = dataPointer.asTypedList(fileBytes.length);
-    dataList.setAll(0, fileBytes);
+      final dataPointer = arena<Uint8>(fileBytes.length);
+      dataPointer.asTypedList(fileBytes.length).setAll(0, fileBytes);
 
-    final fileNameCStr = fileName.toNativeUtf8();
-    final extCStr = fileType.ext.toNativeUtf8();
-    final mimeCStr = fileType.mimeType.toNativeUtf8();
-    final subDirCStr = subDir?.toNativeUtf8();
+      final fileNameCStr = fileName.toNativeUtf8(allocator: arena);
+      final extCStr = fileType.ext.toNativeUtf8(allocator: arena);
+      final mimeCStr = fileType.mimeType.toNativeUtf8(allocator: arena);
+      final subDirCStr = subDir?.toNativeUtf8(allocator: arena);
 
-    try {
-      _bindings.file_saver_save_bytes_async(
-        _saverInstance,
-        dataPointer,
-        fileBytes.length,
-        fileNameCStr.cast(),
-        extCStr.cast(),
-        mimeCStr.cast(),
-        subDirCStr?.cast() ?? nullptr,
-        conflictResolution.index,
-        callback.nativeFunction,
-      );
+      try {
+        _bindings.file_saver_save_bytes_async(
+          _saverInstance,
+          dataPointer,
+          fileBytes.length,
+          fileNameCStr.cast(),
+          extCStr.cast(),
+          mimeCStr.cast(),
+          subDirCStr?.cast() ?? nullptr,
+          conflictResolution.index,
+          callback.nativeFunction,
+        );
 
-      return await completer.future;
-    } finally {
-      malloc.free(dataPointer);
-      malloc.free(fileNameCStr);
-      malloc.free(extCStr);
-      malloc.free(mimeCStr);
-      if (subDirCStr != null) malloc.free(subDirCStr);
-      callback.close();
-    }
+        completer.future.whenComplete(() {
+          callback.close();
+        });
+
+        return completer.future;
+      } catch (e) {
+        callback.close();
+        rethrow;
+      }
+    });
   }
 
   Uri _convertToUriOrThrow(FSaveResult cResult) {
     if (!cResult.success) {
       final errorCode = cResult.errorCode.cast<Utf8>().toDartString();
       final errorMsg = cResult.errorMessage.cast<Utf8>().toDartString();
-
       throw FileSaverException.fromErrorResult(errorCode, errorMsg);
     }
 
-    final uriString = cResult.fileUri.cast<Utf8>().toDartString();
-    return Uri.parse(uriString);
+    return Uri.parse(cResult.fileUri.cast<Utf8>().toDartString());
   }
 
   void _validateInput(Uint8List bytes, String fileName) {
