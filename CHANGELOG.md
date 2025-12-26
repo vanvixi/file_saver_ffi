@@ -1,3 +1,7 @@
-## 0.0.1
+## 0.0.2
 
-* Initial version.
+* Refactor `FileSaverIos` to use NativeFinalizer + Arena for safer native resource management, more robust, and less prone to native memory leaks while maintaining performance.
+* Make `FileSaverPlatform.instance` a true singleton
+* Update document and README.md
+
+## 0.0.1
