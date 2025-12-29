@@ -9,7 +9,21 @@ enum class ConflictResolution(val value: Int) {
 
     /**
      * Overwrite existing file
-     * WARNING: Data loss possible
+     *
+     * Platform behavior:
+     * - Android 9 and below: Full overwrite capability (requires WRITE_EXTERNAL_STORAGE)
+     * - Android 10+: Only overwrites files owned by this app
+     *
+     * Platform limitation (Android 10+):
+     * Due to Scoped Storage, files from other apps cannot be detected.
+     * If a file with the same name exists from another app, MediaStore will
+     * automatically rename your file instead (e.g., photo.jpg → photo (1).jpg)
+     *
+     * iOS behavior:
+     * - Photos: Own files are overwritten; other apps' files create duplicates
+     * - Documents: Full overwrite (each app has isolated sandbox)
+     *
+     * WARNING: When successful, existing file will be permanently deleted
      */
     OVERWRITE(1),
 

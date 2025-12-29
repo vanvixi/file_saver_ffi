@@ -36,8 +36,13 @@ object LegacyStoreConflictResolver {
             ConflictResolution.AUTO_RENAME ->
                 autoRename(directory, baseFileName, extension)
 
-            //Todo(vanvixi): Will be implemented in future releases
-            ConflictResolution.OVERWRITE,
+            ConflictResolution.OVERWRITE -> {
+                if (original.exists()) {
+                    original.delete()
+                }
+                original
+            }
+
             ConflictResolution.SKIP ->
                 original
 

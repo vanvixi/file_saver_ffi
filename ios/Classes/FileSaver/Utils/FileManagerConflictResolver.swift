@@ -9,11 +9,12 @@ enum FileManagerConflictResolver {
         let targetURL = directory.appendingPathComponent(fileName)
         let fileExists = FileManager.default.fileExists(atPath: targetURL.path)
 
+        if !fileExists {
+            return targetURL
+        }
+
         switch conflictResolution {
         case .autoRename:
-            if !fileExists {
-                return targetURL
-            }
             return try autoRename(directory: directory, fileName: fileName)
 
         case .overwrite:

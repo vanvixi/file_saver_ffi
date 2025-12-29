@@ -15,8 +15,20 @@ enum ConflictResolution {
 
   /// Overwrite the existing file with the new file.
   ///
-  /// **Warning**: The existing file will be permanently deleted.
-  /// Use with caution.
+  /// **Platform behavior:**
+  /// - **iOS**:
+  ///   - Photos: Own files ✅ | Other apps → Creates duplicate
+  ///   - Documents: ✅ Full overwrite (sandboxed per app)
+  /// - **Android 9-**: ✅ Full overwrite (requires WRITE_EXTERNAL_STORAGE)
+  /// - **Android 10+**: Own files ✅ | Other apps → Auto-rename
+  ///
+  /// **Important:** On Android 10+, files from other apps cannot be detected.
+  /// MediaStore will automatically rename your file if conflict exists
+  /// (e.g., photo.jpg → photo (1).jpg).
+  ///
+  /// See README.md "Overwrite Behavior" section for details.
+  ///
+  /// **Warning:** Permanently deletes the existing file when successful.
   overwrite,
 
   /// Fail the save operation if a file with the same name exists.

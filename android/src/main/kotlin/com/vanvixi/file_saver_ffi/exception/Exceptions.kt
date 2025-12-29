@@ -11,6 +11,11 @@ class UnsupportedFormatException(
     message: String
 ) : Exception(message)
 
+/**
+ * Exception thrown when file already exists and conflict mode is FAIL
+ *
+ * @property message Error message with file details
+ */
 class FileExistsException(
     message: String
 ) : Exception(message)

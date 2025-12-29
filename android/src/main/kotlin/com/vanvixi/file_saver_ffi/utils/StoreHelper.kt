@@ -99,7 +99,7 @@ object StoreHelper {
             baseFileName,
             fileType.ext,
             conflictResolution
-        ) ?: throw FileExistsException("File already exists: $baseFileName.${fileType.ext}")
+        )
 
         val resolver = context.contentResolver
 

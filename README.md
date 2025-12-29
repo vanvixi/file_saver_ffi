@@ -209,6 +209,57 @@ Control what happens when a file with the same name already exists:
 | `fail`                 | Returns `SaveFailure` with "FILE_EXISTS" error | Strict validation        |
 | `skip`                 | Returns `SaveSuccess` with existing file path  | Idempotent saves         |
 
+### Overwrite Behavior (Platform-Specific)
+
+The `overwrite` strategy behaves differently across platforms:
+
+#### iOS
+
+**Images & Videos (Photos Library):**
+- ✅ **Files owned by your app** - Successfully overwritten (deletes old, adds new)
+- ⚠️ **Files from other apps** - Cannot be deleted; iOS allows duplicate names to coexist
+  - iOS Photos Library has built-in mechanisms to keep files with the same name from different apps
+  - Your file will be added alongside the existing file (both will exist)
+
+**Custom Files (Documents Directory):**
+- ✅ **Full overwrite capability** - Each app has its own sandbox
+- Files from other apps are isolated and inaccessible due to iOS sandbox security
+
+#### Android 9 and Below (API 28-)
+- ✅ **Full overwrite capability** - Can replace any existing file
+- Requires `WRITE_EXTERNAL_STORAGE` permission
+
+#### Android 10+ (API 29+)
+
+**All File Types (MediaStore):**
+- ✅ **Files owned by your app** - Successfully overwritten
+- ⚠️ **Files from other apps** - Cannot be detected; will be auto-renamed instead
+
+**Important Platform Limitation:**
+
+Due to [Scoped Storage](https://developer.android.com/about/versions/11/privacy/storage) security, **files created by other apps cannot be detected** before saving. The library can only detect and handle conflicts for files owned by your app.
+
+**What happens when a file from another app exists:**
+- With `autoRename`: MediaStore automatically renames your file (e.g., `photo.jpg` → `photo (1).jpg`)
+- With `overwrite`: Your file will be auto-renamed instead of overwriting (same as `autoRename`)
+- With `fail` or `skip`: Behavior is unpredictable as the conflict cannot be detected
+
+**Why this happens:**
+Android's Scoped Storage uses different APIs with different scopes:
+- **Query API** (used for conflict detection): Scoped to your app's files only
+- **Insert API** (used for saving): Has global check to prevent overwrites
+
+This is Android's platform design for security, not a library limitation.
+
+---
+
+### Platform Comparison Summary
+
+| Scenario | iOS Photos | iOS Documents | Android 9- | Android 10+ |
+|----------|-----------|---------------|------------|-------------|
+| **Own files** | ✅ Overwrite | ✅ Overwrite | ✅ Overwrite | ✅ Overwrite |
+| **Other apps' files** | ⚠️ Duplicate | N/A (sandboxed) | ✅ Overwrite | ⚠️ Auto-rename |
+
 ### Example
 
 ```dart
@@ -219,7 +270,7 @@ try {
     fileType: CustomFileType(ext: 'pdf', mimeType: 'application/pdf'),
     conflictResolution: ConflictResolution.autoRename,
   );
-  
+
     // If "document.pdf" exists, saves as "document (1).pdf"
     print('Saved to: $uri');
   } on FileSaverException catch (e) {
@@ -330,15 +381,15 @@ subDir: 'My App'
 
 The library provides specific exception types for different failure scenarios:
 
-| Exception                    | Description                      | Error Code           |
-|------------------------------|----------------------------------|----------------------|
-| `PermissionDeniedException`  | Storage access denied            | `PERMISSION_DENIED`  |
-| `FileExistsException`        | File exists with `fail` strategy | `FILE_EXISTS`        |
-| `StorageFullException`       | Insufficient device storage      | `STORAGE_FULL`       |
-| `InvalidFileException`       | Empty bytes or invalid filename  | `INVALID_FILE`       |
-| `FileIOException`            | File system error                | `FILE_IO`            |
-| `UnsupportedFormatException` | Format not supported on platform | `UNSUPPORTED_FORMAT` |
-| `PlatformException`          | Generic platform-specific error  | `PLATFORM_ERROR`     |
+| Exception                    | Description                         | Error Code              |
+|------------------------------|-------------------------------------|-------------------------|
+| `PermissionDeniedException`  | Storage access denied               | `PERMISSION_DENIED`     |
+| `FileExistsException`        | File exists with `fail` strategy    | `FILE_EXISTS`           |
+| `StorageFullException`       | Insufficient device storage         | `STORAGE_FULL`          |
+| `InvalidFileException`       | Empty bytes or invalid filename     | `INVALID_FILE`          |
+| `FileIOException`            | File system error                   | `FILE_IO`               |
+| `UnsupportedFormatException` | Format not supported on platform    | `UNSUPPORTED_FORMAT`    |
+| `PlatformException`          | Generic platform-specific error     | `PLATFORM_ERROR`        |
 
 ### Handling Errors
 
@@ -348,16 +399,20 @@ try {
   print('Saved to: $uri');
 
 } on PermissionDeniedException catch (e) {
-    // Request permissions
+  // Request permissions
+  print('Permission denied: ${e.message}');
+
+} on FileExistsException catch (e) {
+  // File already exists with fail strategy
+  print('File already exists: ${e.fileName}');
 
 } on StorageFullException catch (e) {
   // Show storage full message
-
-} on FileExistsException catch (e) {
-  // File already exists: ${e.fileName}
+  print('Storage full: ${e.message}');
 
 } on FileSaverException catch (e) {
   // Generic error handling
+  print('Save failed: ${e.message}');
 }
 ```
 
