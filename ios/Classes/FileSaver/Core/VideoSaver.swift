@@ -13,24 +13,15 @@ class VideoSaver: BaseFileSaver {
         try validateFileData(fileData)
 
         let hasReadAccess = try requestPhotosPermission()
-
         let fileName = buildFileName(base: baseFileName, extension: fileType.ext)
 
-        if hasReadAccess {
-            if conflictResolution == .skip || conflictResolution == .fail {
-                if let existing = PhotosConflictResolver.findExistingAsset(fileName: fileName, inAlbum: subDir) {
-                    if conflictResolution == .fail {
-                        throw FileSaverError.fileExists(fileName)
-                    }
-                    return .success(filePath: existing.localIdentifier, fileUri: "ph://\(existing.localIdentifier)")
-                }
-            }
-
-            if conflictResolution == .overwrite {
-                if let existing = PhotosConflictResolver.findExistingAsset(fileName: fileName, inAlbum: subDir) {
-                    try PhotosConflictResolver.overwriteAsset(existing)
-                }
-            }
+        if let result = try handlePhotosConflictResolution(
+            fileName: fileName,
+            subDir: subDir,
+            conflictResolution: conflictResolution,
+            hasReadAccess: hasReadAccess
+        ) {
+            return result
         }
 
         return try saveToPhotosLibrary(videoData: fileData, fileName: fileName, fileExtension: fileType.ext, albumName: hasReadAccess ? subDir : nil)
@@ -68,28 +59,5 @@ class VideoSaver: BaseFileSaver {
         }
 
         return .success(filePath: assetId, fileUri: "ph://\(assetId)")
-    }
-
-    private func findOrCreateAlbum(name: String) throws -> PHAssetCollection {
-        let options = PHFetchOptions()
-        options.predicate = NSPredicate(format: "title = %@", name)
-        let collections = PHAssetCollection.fetchAssetCollections(with: .album, subtype: .any, options: options)
-
-        if let existing = collections.firstObject {
-            return existing
-        }
-
-        var albumId: String?
-        try PHPhotoLibrary.shared().performChangesAndWait {
-            let request = PHAssetCollectionChangeRequest.creationRequestForAssetCollection(withTitle: name)
-            albumId = request.placeholderForCreatedAssetCollection.localIdentifier
-        }
-
-        guard let albumId = albumId,
-              let album = PHAssetCollection.fetchAssetCollections(withLocalIdentifiers: [albumId], options: nil).firstObject else {
-            throw FileSaverError.fileIO("Failed to create album: \(name)")
-        }
-
-        return album
     }
 }
