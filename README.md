@@ -61,7 +61,13 @@ Add to `ios/Runner/Info.plist`:
 
 <key>NSPhotoLibraryUsageDescription</key>
 <string>This app needs permission to access your photo library</string>
+
+<!-- Prevent automatic "Select More Photos" prompt on iOS 14+ -->
+<key>PHPhotoLibraryPreventAutomaticLimitedAccessAlert</key>
+<true/>
 ```
+
+> **Note:** On iOS 14+, if the user selects "Limited Photos" access, iOS may automatically show a dialog prompting them to select more photos. The `PHPhotoLibraryPreventAutomaticLimitedAccessAlert` key prevents this automatic dialog, providing a better user experience.
 
 #### For Files App Visibility (Optional for custom files)
 
