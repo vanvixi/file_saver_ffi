@@ -151,7 +151,6 @@ void main() {
 ```
 
 > **Note:** `AppLifecycleState.detached` is not guaranteed to be called on all platforms when the app is force-killed. However, the OS will automatically reclaim all memory when the process terminates, so this is primarily for explicit cleanup in normal shutdown scenarios.
-```
 
 ## Supported File Types
 
