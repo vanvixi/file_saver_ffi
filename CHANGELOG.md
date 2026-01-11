@@ -1,3 +1,26 @@
+## 0.0.4
+
+### Added
+- **SaveLocation Feature**: Explicit control over save locations with platform-specific enums
+  - Android: `pictures`, `movies`, `music`, `downloads` (default), `dcim`
+  - iOS: `photos` (Photos Library), `documents` (default, no permission)
+  - Type-safe sealed class design with platform defaults
+
+### Changed
+- Added optional `saveLocation` parameter to `saveBytes()`
+- Standardized parameter order: `saveLocation` now before `subDir`
+
+### Breaking Changes
+- **Default locations changed** for better UX:
+  - Android: All files → Downloads (was type-based: Images→Pictures, Videos→Movies, etc.)
+  - iOS: All files → Documents (was Images/Videos→Photos Library)
+- **Migration**: Explicitly set `saveLocation` to maintain old behavior:
+  ```dart
+  saveLocation: Platform.isAndroid
+    ? AndroidSaveLocation.pictures
+    : [PlatformX]SaveLocation.photos
+  ```
+
 ## 0.0.3
 
 ### Added
