@@ -9,8 +9,7 @@
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-purple.svg" alt="License: MIT"></a>
 </p>
 
-A high-performance Flutter plugin for saving files, images, and videos to device storage using native APIs via FFI (iOS)
-and JNI (Android).
+A high-performance file saver for Flutter using FFI and JNI. Effortlessly save to gallery (images/videos) or device storage with original quality and custom album support..
 
 ## Features
 
