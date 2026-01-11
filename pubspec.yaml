@@ -1,5 +1,5 @@
 name: file_saver_ffi
-description: "A Flutter plugin for saving files to device storage using FFI and JNI"
+description: "A high-performance file saver for Flutter using FFI and JNI. Effortlessly save to gallery (images/videos) or device storage with original quality and custom album support."
 version: 0.0.3
 homepage: https://github.com/vanvixi/file_saver_ffi.flutter
 repository: https://github.com/vanvixi/file_saver_ffi.flutter

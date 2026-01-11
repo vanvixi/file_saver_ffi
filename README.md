@@ -14,15 +14,14 @@ and JNI (Android).
 
 ## Features
 
-- ⚡ **Native Performance** - FFI (iOS) and JNI (Android) for maximum speed
-- 📁 **Universal File Saving** - Save any file type to device storage with a single method
-- 🖼️ **Image-Specific Handling** - Format validation and album support
-- 🎥 **Video Handling** - Native integration with Photos (iOS) and MediaStore (Android)
-- ⚙️ **Conflict Resolution** - Auto-rename, overwrite, skip, or fail on conflicts
-- 🎯 **Album/Subdirectory Support** - Organize all file types in albums (iOS) or subdirectories (Android)
-- 💾 **Original Quality** - Always saves at original quality, no compression
-- 🔒 **Type-Safe API** - Sealed classes and pattern matching for robust code
-- 📂 **Flexible Save Locations** - Explicit control over save locations with platform-specific options
+- 🖼️ **One-Click Gallery Saving** – Save images and videos directly to **iOS Photos** or **Android Gallery** with full MediaStore and ALAssetsLibrary integration.
+- 📁 **Universal File Storage** – Effortlessly save any file type (PDF, ZIP, DOCX, etc.) to device-specific storage using a unified, easy-to-use API.
+- ⚡ **Native Performance** – Powered by **FFI (iOS/C++)** and **JNI (Android/Java)** for near-zero latency, bypassing the overhead of traditional MethodChannels.
+- 🎯 **Smart Organization** – Full support for custom **Albums (iOS)** or **Subdirectories (Android)** to keep user files neatly organized.
+- 💾 **Original Quality Guaranteed** – Files are saved bit-for-bit at their **Original Quality** without any forced compression or metadata loss.
+- ⚙️ **Conflict Resolution** – Built-in logic to handle existing files: `Auto-rename`, `Overwrite`, `Skip`, or `Fail`.
+- 📂 **Granular Location Control** – Explicitly define save paths (Downloads, Documents, etc.) using platform-specific options for maximum flexibility.
+- 🔒 **Type-Safe API** – Leverages Dart 3.x **Sealed Classes** and pattern matching to ensure robust, compile-time safe code.
 
 If you want to say thank you, star us on GitHub or like us on pub.dev.
 
