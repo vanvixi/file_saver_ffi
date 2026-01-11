@@ -2,6 +2,7 @@ package com.vanvixi.file_saver_ffi
 
 import android.content.Context
 import com.vanvixi.file_saver_ffi.models.FileType
+import com.vanvixi.file_saver_ffi.models.SaveLocation
 import com.vanvixi.file_saver_ffi.models.SaveResult
 import com.vanvixi.file_saver_ffi.utils.Constants
 import com.vanvixi.file_saver_ffi.utils.FormatValidator
@@ -17,6 +18,7 @@ class VideoSaver(context: Context) : BaseFileSaver(context) {
         videoData: ByteArray,
         videoType: FileType,
         baseFileName: String,
+        saveLocation: SaveLocation,
         subDir: String?,
         conflictResolution: ConflictResolution,
     ): SaveResult = withContext(Dispatchers.IO) {
@@ -37,6 +39,7 @@ class VideoSaver(context: Context) : BaseFileSaver(context) {
             videoData,
             videoType,
             baseFileName,
+            saveLocation,
             subDir,
             conflictResolution,
         )

@@ -15,7 +15,7 @@ class FileSaver(context: Context) {
 
 
     /**
-     * Saves file data with automatic MediaStore routing
+     * Saves file data with explicit save location
      *
      * @param fileData File content as byte array
      * @param baseFileName File name WITHOUT extension
@@ -23,6 +23,7 @@ class FileSaver(context: Context) {
      * @param mimeType MIME type string (e.g., "image/jpeg")
      * @param subDir Optional subdirectory within target location
      * @param conflictMode Conflict resolution mode (0-3)
+     * @param saveLocationIndex Save location index from Dart enum (0-4)
      * @return SaveResult with success/failure details
      */
     suspend fun saveBytes(
@@ -30,33 +31,35 @@ class FileSaver(context: Context) {
         baseFileName: String,
         extension: String,
         mimeType: String,
+        saveLocationIndex: Int,
         subDir: String?,
         conflictMode: Int,
     ): SaveResult = withContext(Dispatchers.IO) {
         try {
             val fileType = FileType(extension, mimeType)
             val conflictResolution = ConflictResolution.fromInt(conflictMode)
+            val saveLocation = SaveLocation.fromInt(saveLocationIndex)
 
             if (fileType.isImage) {
                 return@withContext imageSaver.saveImageBytes(
-                    fileData, fileType, baseFileName, subDir, conflictResolution
+                    fileData, fileType, baseFileName, saveLocation, subDir, conflictResolution
                 )
             }
 
             if (fileType.isVideo) {
                 return@withContext videoSaver.saveVideoBytes(
-                    fileData, fileType, baseFileName, subDir, conflictResolution
+                    fileData, fileType, baseFileName, saveLocation, subDir, conflictResolution
                 )
             }
 
             if (fileType.isAudio) {
                 return@withContext audioSaver.saveAudioBytes(
-                    fileData, fileType, baseFileName, subDir, conflictResolution
+                    fileData, fileType, baseFileName, saveLocation, subDir, conflictResolution
                 )
             }
 
             return@withContext customFileSaver.saveBytes(
-                fileData, fileType, baseFileName, subDir, conflictResolution
+                fileData, fileType, baseFileName, saveLocation, subDir, conflictResolution
             )
         } catch (e: Exception) {
             SaveResult.failure(

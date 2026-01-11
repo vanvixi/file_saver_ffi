@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import '../models/conflict_resolution.dart';
-import '../models/file_type.dart';
+import '../../file_saver_ffi.dart';
 import '../platforms/android/file_saver_android.dart';
 import '../platforms/ios/file_saver_ios.dart';
 
@@ -38,17 +37,17 @@ abstract class FileSaverPlatform {
   /// - [fileBytes]: The file data to save
   /// - [fileType]: The type of file being saved (determines extension and MIME type)
   /// - [fileName]: The name of the file (without extension, extension is determined by [fileType])
-  /// - [conflictResolution]: How to handle filename conflicts
   /// - [subDir]: Optional subdirectory within the standard save location
+  /// - [saveLocation]: Where to save the file (platform-specific, optional)
+  /// - [conflictResolution]: How to handle filename conflicts
   ///
-  /// Returns:
-  /// - [SaveSuccess] with file path and URI if successful
-  /// - [SaveFailure] with error details if failed
+  /// Returns the [Uri] where the file was saved.
   ///
   Future<Uri> saveBytes({
     required Uint8List fileBytes,
     required FileType fileType,
     required String fileName,
+    SaveLocation? saveLocation,
     String? subDir,
     ConflictResolution conflictResolution = ConflictResolution.autoRename,
   });

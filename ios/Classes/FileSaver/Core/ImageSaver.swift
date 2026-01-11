@@ -6,25 +6,42 @@ class ImageSaver: BaseFileSaver {
         fileData: Data,
         fileType: FileType,
         baseFileName: String,
+        saveLocation: SaveLocation,
         subDir: String?,
         conflictResolution: ConflictResolution
     ) throws -> SaveResult {
         try FormatValidator.validateImageFormat(fileType)
         try validateFileData(fileData)
 
-        let hasReadAccess = try requestPhotosPermission()
         let fileName = buildFileName(base: baseFileName, extension: fileType.ext)
 
-        if let result = try handlePhotosConflictResolution(
-            fileName: fileName,
-            subDir: subDir,
-            conflictResolution: conflictResolution,
-            hasReadAccess: hasReadAccess
-        ) {
-            return result
-        }
+        switch saveLocation {
+        case .photos:
+            let hasReadAccess = try requestPhotosPermission()
 
-        return try saveToPhotosLibrary(imageData: fileData, fileName: fileName, albumName: hasReadAccess ? subDir : nil)
+            if let result = try handlePhotosConflictResolution(
+                fileName: fileName,
+                subDir: subDir,
+                conflictResolution: conflictResolution,
+                hasReadAccess: hasReadAccess
+            ) {
+                return result
+            }
+
+            return try saveToPhotosLibrary(
+                imageData: fileData,
+                fileName: fileName,
+                albumName: hasReadAccess ? subDir : nil
+            )
+
+        case .documents:
+            return try saveToDocuments(
+                imageData: fileData,
+                fileName: fileName,
+                subDir: subDir,
+                conflictResolution: conflictResolution
+            )
+        }
     }
 
     private func saveToPhotosLibrary(imageData: Data, fileName: String, albumName: String?) throws -> SaveResult {
@@ -57,5 +74,30 @@ class ImageSaver: BaseFileSaver {
         }
 
         return .success(filePath: assetId, fileUri: "ph://\(assetId)")
+    }
+
+    private func saveToDocuments(
+        imageData: Data,
+        fileName: String,
+        subDir: String?,
+        conflictResolution: ConflictResolution
+    ) throws -> SaveResult {
+        var targetDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+
+        if let subDir = subDir {
+            targetDir = targetDir.appendingPathComponent(subDir)
+        }
+
+        try FileHelper.ensureDirectoryExists(at: targetDir)
+
+        let finalURL = try FileManagerConflictResolver.resolveConflict(
+            directory: targetDir,
+            fileName: fileName,
+            conflictResolution: conflictResolution
+        )
+
+        try imageData.write(to: finalURL, options: .atomic)
+
+        return .success(filePath: finalURL.path, fileUri: finalURL.absoluteString)
     }
 }

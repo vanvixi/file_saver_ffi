@@ -22,7 +22,7 @@ and JNI (Android).
 - 🎯 **Album/Subdirectory Support** - Organize all file types in albums (iOS) or subdirectories (Android)
 - 💾 **Original Quality** - Always saves at original quality, no compression
 - 🔒 **Type-Safe API** - Sealed classes and pattern matching for robust code
-- 📂 **Smart Location Routing** - Files automatically saved to appropriate directories based on type
+- 📂 **Flexible Save Locations** - Explicit control over save locations with platform-specific options
 
 If you want to say thank you, star us on GitHub or like us on pub.dev.
 
@@ -203,6 +203,82 @@ CustomFileType(
 )
 ```
 
+## Save Locations
+
+Control where files are saved with platform-specific save location options. Each platform has different storage directories optimized for different file types.
+
+### Default Behavior
+
+If you don't specify a save location, the library uses sensible defaults:
+
+- **Android**: `AndroidSaveLocation.downloads` - Files go to the Downloads folder
+- **iOS**: `IosSaveLocation.documents` - Files go to the app's Documents directory (no permission required)
+
+### Android Save Locations
+
+```dart
+AndroidSaveLocation.pictures   // Pictures/ (for images)
+AndroidSaveLocation.movies     // Movies/ (for videos)
+AndroidSaveLocation.music      // Music/ (for audio)
+AndroidSaveLocation.downloads  // Downloads/ (default, for any file type)
+AndroidSaveLocation.dcim       // DCIM/ (for camera photos)
+```
+
+### iOS Save Locations
+
+```dart
+IosSaveLocation.photos     // Photos Library (requires Photos permission)
+IosSaveLocation.documents  // Documents/ directory (default, no permission)
+```
+
+### Examples
+
+```dart
+import 'dart:io' show Platform;
+
+// Save image to Photos Library on iOS, Pictures on Android
+final uri = await FileSaver.instance.saveBytes(
+  bytes: imageBytes,
+  fileName: 'photo',
+  fileType: ImageType.jpg,
+  saveLocation: Platform.isAndroid
+    ? AndroidSaveLocation.pictures
+    : IosSaveLocation.photos,
+);
+
+// Save video to DCIM (Android) or Photos (iOS)
+final uri = await FileSaver.instance.saveBytes(
+  bytes: videoBytes,
+  fileName: 'camera_video',
+  fileType: VideoType.mp4,
+  saveLocation: Platform.isAndroid
+    ? AndroidSaveLocation.dcim
+    : IosSaveLocation.photos,
+);
+
+// Use default location (no saveLocation specified)
+// Android → Downloads/, iOS → Documents/
+final uri = await FileSaver.instance.saveBytes(
+  bytes: pdfBytes,
+  fileName: 'document',
+  fileType: CustomFileType(ext: 'pdf', mimeType: 'application/pdf'),
+);
+```
+
+### Platform Compatibility
+
+| SaveLocation | File Types | Android | iOS |
+|--------------|------------|---------|-----|
+| `pictures` | Images | ✅ Pictures/ | ✅ Photos Library (if `.photos`) or Documents/ (if `.documents`) |
+| `movies` | Videos | ✅ Movies/ | ✅ Photos Library (if `.photos`) or Documents/ (if `.documents`) |
+| `music` | Audio | ✅ Music/ | ✅ Documents/ only |
+| `downloads` | Any | ✅ Downloads/ | ✅ Documents/ only |
+| `dcim` | Images/Videos | ✅ DCIM/ | ✅ Photos Library (if `.photos`) or Documents/ (if `.documents`) |
+| `photos` | Images/Videos | N/A | ✅ Photos Library (requires permission) |
+| `documents` | Any | N/A | ✅ Documents/ directory (no permission) |
+
+**Note:** On iOS, only image and video files can be saved to Photos Library (`.photos`). Audio and custom files always use Documents directory regardless of the saveLocation parameter.
+
 ## Conflict Resolution Strategies
 
 Control what happens when a file with the same name already exists:
@@ -293,30 +369,74 @@ try {
     bytes: videoBytes,
     fileName: 'vacation_video',
     fileType: VideoType.mp4,
+    saveLocation: Platform.isAndroid
+      ? AndroidSaveLocation.movies
+      : IosSaveLocation.photos,
     subDir: 'My Vacations', // Creates album on iOS, folder on Android
   );
-  
-    print('Video saved to: $uri');
-  } on FileSaverException catch (e) {
-    print('Error: ${e.message}');
+
+  print('Video saved to: $uri');
+} on FileSaverException catch (e) {
+  print('Error: ${e.message}');
+}
+```
+
+### Save to Specific Location
+
+```dart
+import 'dart:io' show Platform;
+
+// Save to Photos Library (iOS) or Pictures folder (Android)
+try {
+  final uri = await FileSaver.instance.saveBytes(
+    bytes: imageBytes,
+    fileName: 'screenshot',
+    fileType: ImageType.png,
+    saveLocation: Platform.isAndroid
+      ? AndroidSaveLocation.pictures
+      : IosSaveLocation.photos,
+  );
+
+  print('Image saved to: $uri');
+} on FileSaverException catch (e) {
+  print('Error: ${e.message}');
+}
+
+// Save to Downloads (Android) or Documents (iOS) - using defaults
+try {
+  final uri = await FileSaver.instance.saveBytes(
+    bytes: pdfBytes,
+    fileName: 'report',
+    fileType: CustomFileType(ext: 'pdf', mimeType: 'application/pdf'),
+    // No saveLocation specified - uses platform defaults
+  );
+
+  print('PDF saved to: $uri');
+} on FileSaverException catch (e) {
+  print('Error: ${e.message}');
 }
 ```
 
 ### Complete Example with Error Handling
 
 ```dart
+import 'dart:io' show Platform;
+
 try {
   final uri = await FileSaver.instance.saveBytes(
     bytes: pdfBytes,
     fileName: 'invoice_${DateTime.now().millisecondsSinceEpoch}',
     fileType: CustomFileType(ext: 'pdf', mimeType: 'application/pdf'),
+    saveLocation: Platform.isAndroid
+      ? AndroidSaveLocation.downloads
+      : IosSaveLocation.documents,
     subDir: 'Invoices',
     conflictResolution: ConflictResolution.autoRename,
   );
-  
-    print('✅ Saved successfully!');
-    print('URI: $uri');
-  
+
+  print('✅ Saved successfully!');
+  print('URI: $uri');
+
 } on PermissionDeniedException catch (e) {
   print('❌ Permission denied: ${e.message}');
   // Request permissions
@@ -343,31 +463,29 @@ try {
 
 ### File Storage Locations
 
-#### Android
+Storage locations are now controlled by the `saveLocation` parameter. Below are the default locations when `saveLocation` is not specified:
 
-Files are saved to MediaStore collections based on type:
+#### Android (Default: `downloads`)
 
-| File Type    | Location              |
-|--------------|-----------------------|
-| Images       | `Pictures/[subDir]/`  |
-| Videos       | `Movies/[subDir]/`    |
-| Audio        | `Music/[subDir]/`     |
-| Custom Files | `Downloads/[subDir]/` |
+| File Type    | Default Location      | URI Format                      |
+|--------------|----------------------|---------------------------------|
+| All Files    | `Downloads/[subDir]/`| `content://media/external/...`  |
 
-**URI Format:** `content://media/external/...`
+You can override this with any `AndroidSaveLocation`:
+- `pictures` → `Pictures/[subDir]/`
+- `movies` → `Movies/[subDir]/`
+- `music` → `Music/[subDir]/`
+- `dcim` → `DCIM/[subDir]/`
 
-#### iOS
+#### iOS (Default: `documents`)
 
-Files are saved to platform-appropriate locations:
+| File Type    | Default Location               | URI Format  |
+|--------------|--------------------------------|-------------|
+| All Files    | `Documents/[subDir]/`          | `file://`   |
 
-| File Type    | Location                                                   |
-|--------------|------------------------------------------------------------|
-| Images       | Photos library album `[subDir]`                            |
-| Videos       | Photos library album `[subDir]`                            |
-| Audio        | Photos library (if supported)                              |
-| Custom Files | `Documents/[subDir]/` (visible in Files app if configured) |
-
-**URI Format:** `ph://` for Photos, `file://` for Documents
+You can override with `IosSaveLocation.photos` for images and videos:
+- `photos` → Photos Library album `[subDir]` (requires permission) → `ph://`
+- `documents` → `Documents/[subDir]/` (no permission required) → `file://`
 
 ### SubDir Parameter
 
@@ -432,11 +550,45 @@ Future<Uri> saveBytes({
   required Uint8List bytes,
   required String fileName,
   required FileType fileType,
+  SaveLocation? saveLocation,
   String? subDir,
   ConflictResolution conflictResolution = ConflictResolution.autoRename,
 })
+```
 
-Throws FileSaverException or subtypes on failure.
+**Parameters:**
+- `bytes` - File content as byte array
+- `fileName` - File name without extension
+- `fileType` - Type of file (ImageType, VideoType, AudioType, CustomFileType)
+- `saveLocation` - (Optional) Platform-specific save location
+  - Android: `AndroidSaveLocation.downloads` (default)
+  - iOS: `IosSaveLocation.documents` (default)
+- `subDir` - (Optional) Subdirectory/album name
+- `conflictResolution` - Strategy for handling name conflicts (default: `autoRename`)
+
+**Returns:** `Uri` of the saved file
+
+**Throws:** `FileSaverException` or subtypes on failure
+
+### SaveLocation
+
+Sealed class with platform-specific implementations:
+
+```dart
+// Android options
+enum AndroidSaveLocation implements SaveLocation {
+  pictures,   // Pictures/
+  movies,     // Movies/
+  music,      // Music/
+  downloads,  // Downloads/ (default)
+  dcim,       // DCIM/
+}
+
+// iOS options
+enum IosSaveLocation implements SaveLocation {
+  photos,     // Photos Library (requires permission)
+  documents,  // Documents/ (default, no permission)
+}
 ```
 
 ### ConflictResolution
@@ -446,9 +598,9 @@ Enum for conflict resolution strategies:
 ```dart
 enum ConflictResolution {
   autoRename, // Append (1), (2), etc.
-  overwrite, // Replace existing file
-  fail, // Return error
-  skip, // Return existing file path
+  overwrite,  // Replace existing file
+  fail,       // Throw FileExistsException
+  skip,       // Return existing file URI
 }
 ```
 

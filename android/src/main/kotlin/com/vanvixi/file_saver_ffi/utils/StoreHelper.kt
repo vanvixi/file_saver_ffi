@@ -43,6 +43,7 @@ object StoreHelper {
         context: Context,
         fileType: FileType,
         baseFileName: String,
+        saveLocation: SaveLocation,
         subDir: String? = null,
         conflictResolution: ConflictResolution,
     ): Pair<Uri, OutputStream> = withContext(Dispatchers.IO) {
@@ -50,11 +51,11 @@ object StoreHelper {
 
         if (isVersionQPlus) {
             return@withContext createEntryForScopedStorage(
-                context, fileType, baseFileName, subDir, conflictResolution
+                context, fileType, baseFileName, saveLocation, subDir, conflictResolution
             )
         } else {
             return@withContext createEntryForLegacyStorage(
-                fileType, baseFileName, subDir, conflictResolution
+                fileType, baseFileName, saveLocation, subDir, conflictResolution
             )
         }
     }
@@ -64,31 +65,37 @@ object StoreHelper {
         context: Context,
         fileType: FileType,
         baseFileName: String,
+        saveLocation: SaveLocation,
         subDir: String? = null,
         conflictResolution: ConflictResolution,
     ): Pair<Uri, OutputStream> = withContext(Dispatchers.IO) {
         fun buildDir(defaultDir: String, subDir: String?) =
             if (subDir.isNullOrBlank()) defaultDir else "$defaultDir/$subDir"
 
-        val (contentUri, dirPath) = when {
-            fileType.isImage -> {
+        val (contentUri, dirPath) = when (saveLocation) {
+            SaveLocation.PICTURES -> {
                 val uri = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
                 uri to buildDir(Environment.DIRECTORY_PICTURES, subDir)
             }
 
-            fileType.isVideo -> {
+            SaveLocation.MOVIES -> {
                 val uri = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
                 uri to buildDir(Environment.DIRECTORY_MOVIES, subDir)
             }
 
-            fileType.isAudio -> {
+            SaveLocation.MUSIC -> {
                 val uri = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
                 uri to buildDir(Environment.DIRECTORY_MUSIC, subDir)
             }
 
-            else -> {
+            SaveLocation.DOWNLOADS -> {
                 val uri = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
                 uri to buildDir(Environment.DIRECTORY_DOWNLOADS, subDir)
+            }
+
+            SaveLocation.DCIM -> {
+                val uri = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                uri to buildDir(Environment.DIRECTORY_DCIM, subDir)
             }
         }
 
@@ -122,17 +129,20 @@ object StoreHelper {
     private suspend fun createEntryForLegacyStorage(
         fileType: FileType,
         baseFileName: String,
+        saveLocation: SaveLocation,
         subDir: String? = null,
         conflictResolution: ConflictResolution,
     ): Pair<Uri, OutputStream> = withContext(Dispatchers.IO) {
-        val baseDir = when {
-            fileType.isImage -> Environment.DIRECTORY_PICTURES
+        val baseDir = when (saveLocation) {
+            SaveLocation.PICTURES -> Environment.DIRECTORY_PICTURES
 
-            fileType.isVideo -> Environment.DIRECTORY_MOVIES
+            SaveLocation.MOVIES -> Environment.DIRECTORY_MOVIES
 
-            fileType.isAudio -> Environment.DIRECTORY_MUSIC
+            SaveLocation.MUSIC -> Environment.DIRECTORY_MUSIC
 
-            else -> Environment.DIRECTORY_DOWNLOADS
+            SaveLocation.DOWNLOADS -> Environment.DIRECTORY_DOWNLOADS
+
+            SaveLocation.DCIM -> Environment.DIRECTORY_DCIM
         }
 
         val publicDir = Environment.getExternalStoragePublicDirectory(baseDir)

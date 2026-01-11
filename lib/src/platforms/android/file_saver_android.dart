@@ -6,6 +6,7 @@ import 'package:jni/jni.dart';
 import '../../exceptions/file_saver_exceptions.dart';
 import '../../models/conflict_resolution.dart';
 import '../../models/file_type.dart';
+import '../../models/save_location.dart';
 import '../../platform_interface/file_saver_platform.dart';
 import 'bindings.g.dart' as bindings;
 
@@ -27,6 +28,7 @@ class FileSaverAndroid extends FileSaverPlatform {
     required Uint8List fileBytes,
     required String fileName,
     required FileType fileType,
+    SaveLocation? saveLocation,
     String? subDir,
     ConflictResolution conflictResolution = ConflictResolution.autoRename,
   }) async {
@@ -37,14 +39,19 @@ class FileSaverAndroid extends FileSaverPlatform {
       final jFileName = fileName.toJString();
       final jExtension = fileType.ext.toJString();
       final jMimeType = fileType.mimeType.toJString();
-      final jSubDir = subDir?.toJString();
       final jConflictMode = conflictResolution.index;
+      final jSaveLocationIndex = switch (saveLocation) {
+        AndroidSaveLocation location => location.index,
+        _ => AndroidSaveLocation.downloads.index,
+      };
+      final jSubDir = subDir?.toJString();
 
       final kotlinResult = await _fileSaver.saveBytes(
         jByteArray,
         jFileName,
         jExtension,
         jMimeType,
+        jSaveLocationIndex,
         jSubDir,
         jConflictMode,
       );

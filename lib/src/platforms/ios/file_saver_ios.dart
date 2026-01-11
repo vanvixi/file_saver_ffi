@@ -7,6 +7,7 @@ import 'package:ffi/ffi.dart';
 import '../../exceptions/file_saver_exceptions.dart';
 import '../../models/conflict_resolution.dart';
 import '../../models/file_type.dart';
+import '../../models/save_location.dart';
 import '../../platform_interface/file_saver_platform.dart';
 import 'bindings.g.dart';
 
@@ -49,6 +50,7 @@ class FileSaverIos extends FileSaverPlatform implements Finalizable {
     required Uint8List fileBytes,
     required String fileName,
     required FileType fileType,
+    SaveLocation? saveLocation,
     String? subDir,
     ConflictResolution conflictResolution = ConflictResolution.autoRename,
   }) async {
@@ -79,6 +81,10 @@ class FileSaverIos extends FileSaverPlatform implements Finalizable {
       final fileNameCStr = fileName.toNativeUtf8(allocator: arena);
       final extCStr = fileType.ext.toNativeUtf8(allocator: arena);
       final mimeCStr = fileType.mimeType.toNativeUtf8(allocator: arena);
+      final saveLocationIndex = switch (saveLocation) {
+        IosSaveLocation location => location.index,
+        _ => IosSaveLocation.documents.index,
+      };
       final subDirCStr = subDir?.toNativeUtf8(allocator: arena);
 
       try {
@@ -89,6 +95,7 @@ class FileSaverIos extends FileSaverPlatform implements Finalizable {
           fileNameCStr.cast(),
           extCStr.cast(),
           mimeCStr.cast(),
+          saveLocationIndex,
           subDirCStr?.cast() ?? nullptr,
           conflictResolution.index,
           callback.nativeFunction,

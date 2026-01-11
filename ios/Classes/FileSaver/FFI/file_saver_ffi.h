@@ -23,6 +23,7 @@ void file_saver_save_bytes_async(
     const char* baseFileName,
     const char* extension,
     const char* mimeType,
+    int32_t saveLocation,
     const char* subDir,
     int32_t conflictMode,
     FSaveResultCallback callback

@@ -92,7 +92,7 @@ class FileSaver extends jni$_.JObject {
 
   static final _id_saveBytes = _class.instanceMethodId(
     r'saveBytes',
-    r'([BLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;',
+    r'([BLjava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;',
   );
 
   static final _saveBytes =
@@ -107,6 +107,7 @@ class FileSaver extends jni$_.JObject {
                     jni$_.Pointer<jni$_.Void>,
                     jni$_.Pointer<jni$_.Void>,
                     jni$_.Pointer<jni$_.Void>,
+                    jni$_.Int32,
                     jni$_.Pointer<jni$_.Void>,
                     jni$_.Int32,
                     jni$_.Pointer<jni$_.Void>,
@@ -123,21 +124,23 @@ class FileSaver extends jni$_.JObject {
               jni$_.Pointer<jni$_.Void>,
               jni$_.Pointer<jni$_.Void>,
               jni$_.Pointer<jni$_.Void>,
+              int,
               jni$_.Pointer<jni$_.Void>,
               int,
               jni$_.Pointer<jni$_.Void>,
             )
           >();
 
-  /// from: `public suspend fun saveBytes(fileData: kotlin.ByteArray, baseFileName: kotlin.String, extension: kotlin.String, mimeType: kotlin.String, subDir: kotlin.String?, conflictMode: kotlin.Int): com.vanvixi.file_saver_ffi.models.SaveResult`
+  /// from: `public suspend fun saveBytes(fileData: kotlin.ByteArray, baseFileName: kotlin.String, extension: kotlin.String, mimeType: kotlin.String, saveLocationIndex: kotlin.Int, subDir: kotlin.String?, conflictMode: kotlin.Int): com.vanvixi.file_saver_ffi.models.SaveResult`
   /// The returned object must be released after use, by calling the [release] method.
   core$_.Future<SaveResult> saveBytes(
     jni$_.JByteArray bs,
     jni$_.JString string,
     jni$_.JString string1,
     jni$_.JString string2,
-    jni$_.JString? string3,
     int i,
+    jni$_.JString? string3,
+    int i1,
   ) async {
     final $p = jni$_.ReceivePort();
     final _$continuation = jni$_.ProtectedJniExtensions.newPortContinuation($p);
@@ -153,8 +156,9 @@ class FileSaver extends jni$_.JObject {
       _$string.pointer,
       _$string1.pointer,
       _$string2.pointer,
-      _$string3.pointer,
       i,
+      _$string3.pointer,
+      i1,
       _$continuation.pointer,
     ).object<jni$_.JObject>(const jni$_.$JObject$Type$());
     _$continuation.release();

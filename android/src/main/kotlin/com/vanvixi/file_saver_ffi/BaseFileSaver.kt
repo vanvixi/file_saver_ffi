@@ -2,6 +2,7 @@ package com.vanvixi.file_saver_ffi
 
 import android.content.Context
 import com.vanvixi.file_saver_ffi.models.FileType
+import com.vanvixi.file_saver_ffi.models.SaveLocation
 import com.vanvixi.file_saver_ffi.models.SaveResult
 import com.vanvixi.file_saver_ffi.utils.Constants
 import com.vanvixi.file_saver_ffi.exception.FileExistsException
@@ -24,6 +25,7 @@ abstract class BaseFileSaver(private val context: Context) {
      * @param conflictResolution Conflict resolution mode (IGNORED for MediaStore)
      *                     MediaStore automatically handles conflicts by appending numbers
      *                     photo.jpg → photo(1).jpg → photo(2).jpg
+     * @param saveLocation Target save location (e.g., PICTURES, DOWNLOADS, DCIM)
      * @return SaveResult with success/failure details
      *
      */
@@ -31,6 +33,7 @@ abstract class BaseFileSaver(private val context: Context) {
         fileData: ByteArray,
         fileType: FileType,
         baseFileName: String,
+        saveLocation: SaveLocation,
         subDir: String?,
         conflictResolution: ConflictResolution,
     ): SaveResult = withContext(Dispatchers.IO) {
@@ -44,7 +47,7 @@ abstract class BaseFileSaver(private val context: Context) {
 
             val (uri, outputStream) = try {
                 StoreHelper.createEntry(
-                    context, fileType, baseFileName, subDir, conflictResolution,
+                    context, fileType, baseFileName, saveLocation, subDir, conflictResolution,
                 )
             } catch (e: IOException) {
                 return@withContext SaveResult.failure(

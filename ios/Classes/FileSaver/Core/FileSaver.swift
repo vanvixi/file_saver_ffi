@@ -12,6 +12,7 @@ class FileSaver {
         extension ext: String,
         mimeType: String,
         subDir: String?,
+        saveLocationValue: Int,
         conflictMode: Int
     ) -> SaveResult {
         do {
@@ -24,11 +25,14 @@ class FileSaver {
                 )
             }
 
+            let saveLocation = SaveLocation.fromInt(saveLocationValue)
+
             if fileType.category == .image {
                 return try imageSaver.saveBytes(
                     fileData: fileData,
                     fileType: fileType,
                     baseFileName: baseFileName,
+                    saveLocation: saveLocation,
                     subDir: subDir,
                     conflictResolution: conflictResolution
                 )
@@ -39,6 +43,7 @@ class FileSaver {
                     fileData: fileData,
                     fileType: fileType,
                     baseFileName: baseFileName,
+                    saveLocation: saveLocation,
                     subDir: subDir,
                     conflictResolution: conflictResolution
                 )
@@ -49,6 +54,7 @@ class FileSaver {
                     fileData: fileData,
                     fileType: fileType,
                     baseFileName: baseFileName,
+                    saveLocation: saveLocation,
                     subDir: subDir,
                     conflictResolution: conflictResolution
                 )
@@ -58,6 +64,7 @@ class FileSaver {
                 fileData: fileData,
                 fileType: fileType,
                 baseFileName: baseFileName,
+                saveLocation: saveLocation,
                 subDir: subDir,
                 conflictResolution: conflictResolution
             )

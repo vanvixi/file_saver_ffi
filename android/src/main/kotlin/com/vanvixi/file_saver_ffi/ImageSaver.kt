@@ -4,6 +4,7 @@ import android.content.Context
 import com.vanvixi.file_saver_ffi.exception.UnsupportedFormatException
 import com.vanvixi.file_saver_ffi.models.ConflictResolution
 import com.vanvixi.file_saver_ffi.models.FileType
+import com.vanvixi.file_saver_ffi.models.SaveLocation
 import com.vanvixi.file_saver_ffi.models.SaveResult
 import com.vanvixi.file_saver_ffi.utils.Constants
 import com.vanvixi.file_saver_ffi.utils.FormatValidator
@@ -16,6 +17,7 @@ class ImageSaver(context: Context) : BaseFileSaver(context) {
         imageData: ByteArray,
         imageType: FileType,
         baseFileName: String,
+        saveLocation: SaveLocation,
         subDir: String?,
         conflictResolution: ConflictResolution,
     ): SaveResult = withContext(Dispatchers.IO) {
@@ -36,6 +38,7 @@ class ImageSaver(context: Context) : BaseFileSaver(context) {
             imageData,
             imageType,
             baseFileName,
+            saveLocation,
             subDir,
             conflictResolution,
         )

@@ -6,11 +6,13 @@ class CustomFileSaver: BaseFileSaver {
         fileData: Data,
         fileType: FileType,
         baseFileName: String,
+        saveLocation: SaveLocation,
         subDir: String?,
         conflictResolution: ConflictResolution
     ) throws -> SaveResult {
         try validateFileData(fileData)
 
+        // Custom files always use Documents directory regardless of saveLocation
         var targetDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
 
         if let subDir = subDir {

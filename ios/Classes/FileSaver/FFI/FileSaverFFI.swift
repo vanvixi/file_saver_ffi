@@ -24,6 +24,7 @@ public func fileSaverSaveBytesAsync(
     _ baseFileName: UnsafePointer<CChar>,
     _ ext: UnsafePointer<CChar>,
     _ mimeType: UnsafePointer<CChar>,
+    _ saveLocation: Int32,
     _ subDir: UnsafePointer<CChar>?,
     _ conflictMode: Int32,
     _ callback: @escaping @convention(c) (UnsafeMutablePointer<FSaveResult>) -> Void
@@ -36,6 +37,7 @@ public func fileSaverSaveBytesAsync(
             baseFileName: baseFileName,
             ext: ext,
             mimeType: mimeType,
+            saveLocation: saveLocation,
             subDir: subDir,
             conflictMode: conflictMode
         )
@@ -80,6 +82,7 @@ private func performSave(
     baseFileName: UnsafePointer<CChar>,
     ext: UnsafePointer<CChar>,
     mimeType: UnsafePointer<CChar>,
+    saveLocation: Int32,
     subDir: UnsafePointer<CChar>?,
     conflictMode: Int32
 ) -> SaveResult {
@@ -105,6 +108,7 @@ private func performSave(
         extension: extStr,
         mimeType: mime,
         subDir: directory,
+        saveLocationValue: Int(saveLocation),
         conflictMode: Int(conflictMode)
     )
 }

@@ -6,6 +6,7 @@ protocol BaseFileSaver {
         fileData: Data,
         fileType: FileType,
         baseFileName: String,
+        saveLocation: SaveLocation,
         subDir: String?,
         conflictResolution: ConflictResolution
     ) throws -> SaveResult
