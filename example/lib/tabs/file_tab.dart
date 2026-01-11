@@ -42,6 +42,11 @@ class _FileTabPageState extends State<FileTabPage>
           bytes: fileBytes,
           fileName: fileName,
           fileType: CustomFileType(ext: 'pdf', mimeType: 'application/pdf'),
+          saveLocation: switch (true) {
+            _ when Platform.isAndroid => AndroidSaveLocation.downloads,
+            _ when Platform.isIOS => IosSaveLocation.documents,
+            _ => null,
+          },
           subDir: Platform.isIOS ? 'PDF' : 'FileSaverFFI Demo',
           conflictResolution: ConflictResolution.autoRename,
         ),

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:file_saver_ffi/file_saver_ffi.dart';
 import 'package:flutter/material.dart';
 
@@ -48,6 +50,11 @@ class _VideoTabPageState extends State<VideoTabPage>
           bytes: videoBytes,
           fileName: fileName,
           fileType: VideoType.mp4,
+          saveLocation: switch (true) {
+            _ when Platform.isAndroid => AndroidSaveLocation.movies,
+            _ when Platform.isIOS => IosSaveLocation.photos,
+            _ => null,
+          },
           subDir: 'FileSaverFFI Demo',
         ),
       );

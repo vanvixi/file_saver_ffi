@@ -1,6 +1,7 @@
-import 'dart:typed_data';
+import 'dart:io';
 
 import 'package:file_saver_ffi/file_saver_ffi.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../core/core.dart';
@@ -44,6 +45,11 @@ class _ImageTabPageState extends State<ImageTabPage>
           bytes: imageBytes,
           fileName: fileName,
           fileType: ImageType.jpg,
+          saveLocation: switch (true) {
+            _ when Platform.isAndroid => AndroidSaveLocation.pictures,
+            _ when Platform.isIOS => IosSaveLocation.photos,
+            _ => null,
+          },
           subDir: 'FileSaverFFI Demo',
         ),
       );
